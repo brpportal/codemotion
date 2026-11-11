@@ -29,7 +29,26 @@ data class Layer(
     val code: String,
     val color: String,
     val bg: String,
-    val fontSize: Float
+    val fontSize: Float,
+    // --- Optional v2 fields (FORMAT_SPEC extension; absence = defaults) ---
+    /** GSAP easing name (e.g. "back.out") overriding the effect's default curve. */
+    val easing: String = "",
+    /** Spring profile for pop-family effects: smooth | snappy | bouncy. */
+    val spring: String = "",
+    /** Per-unit stagger delay in ms for reveal effects; -1 = effect default. */
+    val staggerMs: Int = -1,
+    /** Stagger origin: start | center | end | edges; "" = effect default. */
+    val staggerFrom: String = "",
+    /** Layer opacity 0..1 (editor slider 0-100%). */
+    val opacity: Float = 1f,
+    /** Static rotation in degrees (clockwise). */
+    val rotation: Float = 0f,
+    /** Image layers: absolute path of the image inside the app's files dir. */
+    val imagePath: String? = null,
+    /** Locked layers render but cannot be selected/dragged in the editor. */
+    val locked: Boolean = false,
+    /** Hidden layers do not render (preview or export). */
+    val hidden: Boolean = false
 )
 
 data class Scene(
@@ -42,7 +61,9 @@ data class Project(
     val width: Int,
     val height: Int,
     val fps: Int,
-    val scenes: List<Scene>
+    val scenes: List<Scene>,
+    /** Canvas background hex (#RRGGBB / #AARRGGBB); default dark. */
+    val bg: String = "#0B0B10"
 )
 
 fun parseEffects(jsonText: String): List<EffectDef> {
@@ -75,6 +96,17 @@ fun parseProject(jsonText: String): Project {
         val layers = ArrayList<Layer>()
         for (j in 0 until layersArr.length()) {
             val l = layersArr.getJSONObject(j)
+            // stagger accepts two shapes: a plain number (ms per unit) or
+            // an object { eachMs, from } — both describe the same thing.
+            var staggerMs = -1
+            var staggerFrom = ""
+            when (val st = l.opt("stagger")) {
+                is Number -> staggerMs = st.toInt()
+                is JSONObject -> {
+                    staggerMs = st.optInt("eachMs", -1)
+                    staggerFrom = st.optString("from", "")
+                }
+            }
             layers.add(
                 Layer(
                     id = l.optString("id", "layer${j + 1}"),
@@ -90,7 +122,16 @@ fun parseProject(jsonText: String): Project {
                     code = l.optString("code"),
                     color = l.optString("color", "#FFFFFF"),
                     bg = l.optString("bg", "#00000000"),
-                    fontSize = l.optDouble("fontSize", 48.0).toFloat()
+                    fontSize = l.optDouble("fontSize", 48.0).toFloat(),
+                    easing = l.optString("easing", ""),
+                    spring = l.optString("spring", ""),
+                    staggerMs = staggerMs,
+                    staggerFrom = staggerFrom,
+                    opacity = l.optDouble("opacity", 1.0).toFloat().coerceIn(0f, 1f),
+                    rotation = l.optDouble("rotation", 0.0).toFloat(),
+                    imagePath = l.optString("imagePath", "").ifEmpty { null },
+                    locked = l.optBoolean("locked", false),
+                    hidden = l.optBoolean("hidden", false)
                 )
             )
         }
@@ -100,7 +141,8 @@ fun parseProject(jsonText: String): Project {
         width = canvas.optInt("w", 1080),
         height = canvas.optInt("h", 1920),
         fps = canvas.optInt("fps", 30),
-        scenes = scenes
+        scenes = scenes,
+        bg = canvas.optString("bg", "#0B0B10")
     )
 }
 
