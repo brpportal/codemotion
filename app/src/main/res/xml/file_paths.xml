@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Exported MP4s live in getExternalFilesDir(DIRECTORY_MOVIES) -->
+    <external-files-path name="movies" path="Movies/" />
+    <!-- Fallback: internal files dir -->
+    <files-path name="internal" path="." />
+</paths>
