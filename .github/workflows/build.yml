@@ -1,4 +1,4 @@
-name: Build Debug APK
+name: Build APK
 
 on:
   push:
@@ -31,12 +31,12 @@ jobs:
           fi
           chmod +x gradlew
 
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+      - name: Build Release APK (minified)
+        run: ./gradlew assembleRelease --stacktrace
 
-      - name: Upload Debug APK
+      - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: codemotion-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: codemotion-release-apk
+          path: app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
