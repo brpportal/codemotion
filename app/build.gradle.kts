@@ -18,11 +18,15 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // Chhota size: minify + resource shrink (WhatsApp delivery ke liye <5MB target)
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Test build hai — debug key se sign karo taake seedha install ho jaye
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
