@@ -59,16 +59,42 @@ hai → app project.json import karke layered, editable video banati hai.**
 
 Layers array ki **order = z-order** hai: pehle wala layer sab se neeche, akhri wala sab se upar.
 
+### Optional fields (v2 — na ho to default lagta hai, purane projects chalte rehte hain)
+
+| Field | Default | Matlab |
+|---|---|---|
+| `layers[].easing` | effect ki apni curve | GSAP easing naam jo effect ki default curve ko override kare: `linear`, `sine.in/out/inOut`, `power1..4.in/out/inOut`, `expo.*`, `circ.*`, `back.*`, `elastic.*`, `bounce.*` (masalan `"back.out"`) |
+| `layers[].spring` | effect ke mutabiq | Spring profile (`pop-in`, `keyword-pulse`, `glow-pulse` par): `"smooth"` (damping 200, koi bounce nahi), `"snappy"`, `"bouncy"` |
+| `layers[].stagger` | effect ke mutabiq | Reveal effects (`word-reveal`, `code-typewriter`, `char-stagger-in`) me har unit ke darmiyan delay: ya to number (ms, masalan `110`) ya object `{"eachMs": 110, "from": "start"}` — `from` = `start` / `center` / `end` / `edges` |
+| `layers[].opacity` | `1.0` | Layer ki opacity 0..1 (editor me 0–100% slider) |
+| `layers[].rotation` | `0` | Static rotation, degrees (clockwise) |
+| `layers[].imagePath` | — | `image` type ke liye: app ke internal images folder me copy hui image ka path. **Note:** exported project.json kisi doosri device par le jao to image file bhi sath chahiye hogi — path wahan nahi milega to layer placeholder dikhayega (v1 ki hadd). |
+| `layers[].locked` | `false` | Editor me select/drag band (render hota rehta hai) |
+| `layers[].hidden` | `false` | Layer render hi nahi hota (na preview, na export) |
+
+**Motion ke usool (renderer):** har value playhead time se deterministic banti hai —
+koi random, koi wall-clock loop nahi. Entrances `power3.out`/`expo.out`, pop family
+asli spring par settle hoti hai, exits `power2.in`, camera `sine.inOut`. Sirf
+transform + opacity animate hota hai.
+
 ## 2. Effects catalog (sirf yehi IDs allowed hain)
 
 Source: `catalog/effects.json`
 
 | Category | Effect IDs |
 |---|---|
-| text | `pop-in`, `slide-up`, `typewriter`, `word-reveal`, `keyword-pulse` |
+| text | `pop-in`, `slide-up`, `typewriter`, `word-reveal`, `keyword-pulse`, `char-stagger-in`, `highlight-sweep`, `underline-draw`, `counter-up` |
 | code | `code-typewriter`, `line-highlight`, `zoom-to-line` |
-| card | `slide-card`, `flip-in`, `draw-arrow`, `circle-marker` |
+| card | `slide-card`, `flip-in`, `draw-arrow`, `circle-marker`, `box-marker`, `path-arrow`, `bounce-drop`, `elastic-snap` |
 | camera | `push-in`, `pan`, `impact-shake`, `whoosh`, `fade` |
+| highlight | `glow-pulse` |
+
+Naye effects ki technique: `char-stagger-in` = har harf stagger pop (from: center default) •
+`highlight-sweep` = lafz ke peeche marker band sweep • `underline-draw` = hand-drawn underline •
+`box-marker` = hand-drawn double-stroke box • `path-arrow` = curved arrow, head auto-rotate •
+`bounce-drop` = bounce.out se gir kar rukna • `elastic-snap` = elastic.out scale-in •
+`glow-pulse` = shadowBlur glow ka ek spring pulse • `counter-up` = text ke pehle number ko
+0 se target tak count (power3.out, aakhir me snap).
 
 Camera effects poore scene par lagte hain — un ke liye ek layer banao jis ka
 `type` = `card` ya `text` ho aur `w/h` poora canvas ho, ya scene ke kisi main layer par
@@ -120,5 +146,6 @@ Rules:
 - Pehla scene hook ho.
 - Timing ms me, layers scene duration ke andar.
 - Sirf project.json return karo (schema: canvas{w,h,fps}, scenes[]{id,durationMs,
-  layers[]{id,type,effect,startMs,durationMs,x,y,w,h,text,code,color,bg,fontSize}}).
+  layers[]{id,type,effect,startMs,durationMs,x,y,w,h,text,code,color,bg,fontSize}
+  + optional: easing, spring, stagger, opacity, rotation, imagePath, locked, hidden}).
 ```
